@@ -4,7 +4,7 @@ version: 7.2.2
 homepage: https://plus.fluttercommunity.dev/
 repository: https://github.com/fluttercommunity/plus_plugins/tree/main/packages/share_plus/share_plus
 issue_tracker: https://github.com/fluttercommunity/plus_plugins/labels/share_plus
-
+publish_to: none
 flutter:
   plugin:
     platforms:
