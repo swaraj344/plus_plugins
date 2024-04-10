@@ -43,7 +43,11 @@ dependencies:
   # win32 is compatible across v4 and v5 for Win32 only (not COM)
   win32: ">=4.0.0 <6.0.0"
   share_plus_platform_interface:
-    path: ../share_plus_platform_interface
+    # path: ../share_plus_platform_interface
+    git:
+      url: https://github.com/swaraj344/plus_plugins
+      ref: main
+      path: packages/share_plus/share_plus_platform_interface
 
 dev_dependencies:
   flutter_test:
