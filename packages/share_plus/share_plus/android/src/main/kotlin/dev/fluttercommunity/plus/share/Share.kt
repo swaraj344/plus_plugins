@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.core.content.FileProvider
 import java.io.File
 import java.io.IOException
@@ -152,6 +153,67 @@ internal class Share(
             }
         }
         startActivity(chooserIntent, withResult)
+    }
+
+    @Throws(IOException::class)
+    fun shareFilesWithPackage(
+        paths: List<String>,
+        mimeTypes: List<String>?,
+        text: String?,
+        subject: String?,
+        shareAppPackageName: String?,
+        withResult: Boolean,
+    ) {
+        clearShareCacheFolder()
+        val fileUris = getUrisForPaths(paths)
+        val shareIntent = Intent()
+        when {
+            (fileUris.isEmpty() && !text.isNullOrBlank()) -> {
+                share(text, subject, withResult)
+                return
+            }
+            fileUris.size == 1 -> {
+                val mimeType = if (!mimeTypes.isNullOrEmpty()) {
+                    mimeTypes.first()
+                } else {
+                    "*/*"
+                }
+                shareIntent.apply {
+                    action = Intent.ACTION_SEND
+                    type = mimeType
+                    putExtra(Intent.EXTRA_STREAM, fileUris.first())
+                }
+            }
+            else -> {
+                shareIntent.apply {
+                    action = Intent.ACTION_SEND_MULTIPLE
+                    type = reduceMimeTypes(mimeTypes)
+                    putParcelableArrayListExtra(Intent.EXTRA_STREAM, fileUris)
+                }
+            }
+        }
+        if (text != null) shareIntent.putExtra(Intent.EXTRA_TEXT, text)
+        if (subject != null) shareIntent.putExtra(Intent.EXTRA_SUBJECT, subject)
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        shareIntent.setPackage(shareAppPackageName!!)
+        fileUris.forEach { fileUri ->
+            getContext().grantUriPermission(
+                shareAppPackageName,
+                fileUri,
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION,
+            )
+        }
+        startActivity(shareIntent, withResult)
+    }
+
+    @Throws(IOException::class)
+    fun checkAppInstallationStatus(packageNames: List<String>): List<String> {
+        val packageManager: PackageManager = context.packageManager
+        val packages = packageManager.getInstalledPackages(PackageManager.GET_META_DATA)
+        val installedPackages =
+            packages.filter { packageInfo -> packageNames.contains(packageInfo.packageName) }
+
+        return installedPackages.map { packageInfo -> packageInfo.packageName.toString() }.toList()
     }
 
     private fun startActivity(intent: Intent, withResult: Boolean) {

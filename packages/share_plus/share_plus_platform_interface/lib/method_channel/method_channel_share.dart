@@ -117,6 +117,7 @@ class MethodChannelShare extends SharePlatform {
     String? subject,
     String? text,
     Rect? sharePositionOrigin,
+    String? package,
   }) async {
     assert(paths.isNotEmpty);
     assert(paths.every((element) => element.isNotEmpty));
@@ -136,11 +137,18 @@ class MethodChannelShare extends SharePlatform {
       params['originHeight'] = sharePositionOrigin.height;
     }
 
-    final result =
-        await channel.invokeMethod<String>('shareFilesWithResult', params) ??
-            'dev.fluttercommunity.plus/share/unavailable';
-
-    return ShareResult(result, _statusFromResult(result));
+    if (package != null) {
+      params['package'] = package;
+      final result = await channel.invokeMethod<String>(
+              'shareFilesWithPackageWithResult', params) ??
+          'dev.fluttercommunity.plus/share/unavailable';
+      return ShareResult(result, _statusFromResult(result));
+    } else {
+      final result =
+          await channel.invokeMethod<String>('shareFilesWithResult', params) ??
+              'dev.fluttercommunity.plus/share/unavailable';
+      return ShareResult(result, _statusFromResult(result));
+    }
   }
 
   /// Summons the platform's share sheet to share multiple files.
@@ -164,6 +172,42 @@ class MethodChannelShare extends SharePlatform {
       text: text,
       sharePositionOrigin: sharePositionOrigin,
     );
+  }
+
+  @override
+  Future<ShareResult> shareXFilesWithPackage(
+    List<XFile> files, {
+    required String package,
+    String? subject,
+    String? text,
+    Rect? sharePositionOrigin,
+  }) async {
+    final filesWithPath = await _getFiles(files);
+
+    final mimeTypes = filesWithPath
+        .map((e) => e.mimeType ?? _mimeTypeForPath(e.path))
+        .toList();
+
+    return shareFilesWithResult(
+      filesWithPath.map((e) => e.path).toList(),
+      package: package,
+      mimeTypes: mimeTypes,
+      subject: subject,
+      text: text,
+      sharePositionOrigin: sharePositionOrigin,
+    );
+  }
+
+  @override
+  Future<List<String>> checkInstalledPackages(List<String> packageNames) async {
+    final params = {
+      "packageNames": packageNames,
+    };
+    final result = ((await channel.invokeMethod(
+            'checkInstalledPackagesWithResult', params)) as List?)
+        ?.map((e) => e.toString())
+        .toList();
+    return result ?? [];
   }
 
   /// if file doesn't contain path

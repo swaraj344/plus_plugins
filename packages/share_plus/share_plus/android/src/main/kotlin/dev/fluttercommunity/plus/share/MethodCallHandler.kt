@@ -1,6 +1,7 @@
 package dev.fluttercommunity.plus.share
 
 import android.os.Build
+import android.util.Log
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.io.IOException
@@ -72,6 +73,45 @@ internal class MethodCallHandler(
                 } catch (e: IOException) {
                     result.error("Share failed", e.message, null)
                 }
+            }
+            "shareFilesWithPackage", "shareFilesWithPackageWithResult" -> {
+                expectMapArguments(call)
+                if (isWithResult && !manager.setCallback(result)) return
+
+                // Android does not support showing the share sheet at a particular point on screen.
+                try {
+                    share.shareFilesWithPackage(
+                        call.argument<List<String>>("paths")!!,
+                        call.argument<List<String>?>("mimeTypes"),
+                        call.argument<String?>("text"),
+                        call.argument<String?>("subject"),
+                        call.argument<String?>("package"),
+                        isWithResult,
+                    )
+
+                    if (!isWithResult) {
+                        if (isResultRequested) {
+                            result.success("dev.fluttercommunity.plus/share/unavailable")
+                        } else {
+                            result.success(null)
+                        }
+                    }
+                } catch (e: IOException) {
+                    result.error("Share failed", e.message, null)
+                }
+            }
+            "checkInstalledPackages","checkInstalledPackagesWithResult"->{
+                expectMapArguments(call)
+                try {
+                    val res = share.checkAppInstallationStatus(
+                        call.argument<List<String>>("packageNames")!!,
+                    )
+                    Log.i("jde", "checkAppInstallationStatus: $res")
+                    result.success(res)
+                } catch (e: IOException) {
+                    result.error("Check Installed package failed", e.message, null)
+                }
+
             }
             else -> result.notImplemented()
         }

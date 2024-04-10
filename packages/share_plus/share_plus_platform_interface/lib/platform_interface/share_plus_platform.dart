@@ -113,6 +113,27 @@ class SharePlatform extends PlatformInterface {
       sharePositionOrigin: sharePositionOrigin,
     );
   }
+
+  /// Share [XFile] objects with Result.
+  Future<ShareResult> shareXFilesWithPackage(
+    List<XFile> files, {
+    required String package,
+    String? subject,
+    String? text,
+    Rect? sharePositionOrigin,
+  }) async {
+    return _instance.shareXFilesWithPackage(
+      files,
+      package: package,
+      subject: subject,
+      text: text,
+      sharePositionOrigin: sharePositionOrigin,
+    );
+  }
+
+  Future<List<String>> checkInstalledPackages(List<String> packageNames) {
+    return _instance.checkInstalledPackages(packageNames);
+  }
 }
 
 /// The result of a share to determine what action the

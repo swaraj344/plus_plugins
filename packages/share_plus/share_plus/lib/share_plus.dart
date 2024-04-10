@@ -202,4 +202,27 @@ class Share {
       sharePositionOrigin: sharePositionOrigin,
     );
   }
+
+  static Future<ShareResult> shareXFilesWithPackage(
+    List<XFile> files, {
+    required String package,
+    String? subject,
+    String? text,
+    Rect? sharePositionOrigin,
+  }) async {
+    assert(files.isNotEmpty);
+    return _platform.shareXFilesWithPackage(
+      files,
+      package: package,
+      subject: subject,
+      text: text,
+      sharePositionOrigin: sharePositionOrigin,
+    );
+  }
+
+  static Future<List<String>> checkInstalledPackages(
+      List<String> packageNames) {
+    assert(packageNames.isNotEmpty);
+    return _platform.checkInstalledPackages(packageNames);
+  }
 }
